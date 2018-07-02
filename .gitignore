@@ -1,4 +1,6 @@
+age/
 checkpoints/
+pre_trained/
 images/
 .idea/
 .DS_Store

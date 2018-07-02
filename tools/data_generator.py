@@ -14,9 +14,9 @@ class ImageDataGenerator:
                  scale_size=(64, 64), classes=5, mode='train'):
 
         # Init params
-        self.root_folder = '/new_disk2/wangzw/tangxu/CACD_cropped_400/'
+        self.root_folder = '/media/ligong/Toshiba/Research/BicycleGAN/datasets/CACD_cropped_400/'
         if mode == 'train':
-            self.file_folder = '/new_disk2/wangzw/tangxu/age_data/train_data/'
+            self.file_folder = './data/'
             self.class_lists = ['train_age_group_0.txt',
                                'train_age_group_1.txt',
                                'train_age_group_2.txt',
@@ -24,7 +24,7 @@ class ImageDataGenerator:
                                'train_age_group_4.txt']
             self.pointer = [0, 0, 0, 0, 0]
         else:
-            self.file_folder = '/new_disk2/wangzw/tangxu/age_data/test_data/'
+            self.file_folder = './data/'
             self.class_lists = ['test_age_group_0.txt',
                                'test_age_group_1.txt',
                                'test_age_group_2.txt',
@@ -32,8 +32,7 @@ class ImageDataGenerator:
                                'test_age_group_4.txt']
             self.pointer = [0, 0, 0, 0, 0, 0]
 
-        self.train_label_pair = '/home/wangzw/Face-Aging-with-Identity-Preserved-Conditional-Generative-Adversarial-Networks-master/tools' \
-                                '/train_label_pair.txt'
+        self.train_label_pair = './tools/train_label_pair.txt'
         self.true_labels = []
         self.false_labels = []
         self.images = []
@@ -56,8 +55,8 @@ class ImageDataGenerator:
             self.shuffle_data(shuffle_all=True)
 
         self.get_age_labels()
-        self.label_features_128, _ = self.pre_generate_labels(batch_size, 128, 128)
-        self.label_features_64, self.one_hot_labels = self.pre_generate_labels(batch_size, 64, 64)
+        self.label_features_128, self.one_hot_labels = self.pre_generate_labels(batch_size, 128, 128)
+        self.label_features_64, _ = self.pre_generate_labels(batch_size, 64, 64)
 
     def __iter__(self):
         return self
@@ -100,7 +99,7 @@ class ImageDataGenerator:
             batch_label_features.append(temp_label_features)
             batch_one_hot_labels.append(temp_label)
 
-        return batch_label_features, batch_one_hot_labels
+        return batch_label_features, batch_label_features
 
     def read_class_list(self, class_lists):
         """
@@ -405,6 +404,24 @@ class ImageDataGenerator:
 
         return imgs, self.one_hot_labels[index], self.label_features_64[index], \
                self.label_features_64[error_label], self.age_label[index]
+
+    def next_target_batch_transfer2(self):
+        index = self.true_labels[self.label_pair_index]
+        paths = self.images[index][self.pointer[index]:self.pointer[index] + self.batch_size]
+        # Read images
+        imgs = np.ndarray([self.batch_size, self.scale_size[0], self.scale_size[1], 3])
+        for i in range(len(paths)):
+            imgs[i] = process_target_img(self.root_folder, paths[i], self.scale_size[0])
+        # update pointer
+        self.pointer[index] += self.batch_size
+        if self.pointer[index] >= (self.data_size[index] - self.batch_size):
+            self.reset_pointer(index)
+
+        error_label = self.false_labels[self.label_pair_index]
+        self.label_pair_index += 1
+
+        return imgs, self.one_hot_labels[index], self.label_features_128[index], \
+               self.label_features_128[error_label], self.age_label[index]
 
     def next(self):
         index = self.true_labels[self.label_pair_index]

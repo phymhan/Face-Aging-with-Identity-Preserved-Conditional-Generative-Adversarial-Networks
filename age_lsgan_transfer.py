@@ -58,7 +58,7 @@ flags.DEFINE_string("root_folder", 'CACD_cropped_400/', "folder that contains im
 FLAGS = flags.FLAGS
 
 # How often to run a batch through the validation model.
-VAL_INTERVAL = 5000
+VAL_INTERVAL = 1000
 
 # How often to save a model checkpoint
 SAVE_INTERVAL = 10000
@@ -119,7 +119,7 @@ def my_train():
         # Loop over max_steps
         for step in range(FLAGS.max_steps):
             images, t_label_features_128, t_label_features_64, f_label_features_64, age_labels = \
-                train_generator.next_target_batch_transfer2()
+                train_generator.next_target_batch_transfer()  # WTF WTF WTF ???
             dict = {imgs: images,
                     true_label_features_128: t_label_features_128,
                     true_label_features_64: t_label_features_64,
